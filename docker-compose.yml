@@ -1,0 +1,99 @@
+version: "3"
+# modern standard all compose files should have
+
+networks:
+  # internal docker network all of the services will use
+  # not necessary
+  # helps isolate projects
+  # and to run multiple containerized applications
+
+  laravel:
+    # name of the network
+
+services:
+  nginx:
+    # name of the service
+    image:
+      nginx:stable-alpine
+      # tell the service on what they´re build
+      # e.g. linux distro, custom app, some docker image..
+      # nginx:stable-alpine is an image from docker hub
+      # build on alpine linux distro
+    container_name:
+      nginx
+      # overrides pregenerated nyme by docker
+      # could be anything
+    volumes:
+      # like symlinks from local machine
+      # to particular place inside the docker container
+      - ./src:/var/www/html/
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+        # ./src/myfile.txt => /var/www/html/myfile.txt
+    ports:
+      # open ports on local machine
+      - "8088:80"
+    depends_on:
+      # needs both services php and mysql
+      # nginx service runs after those
+      - php
+      - mysql
+    networks:
+      - laravel
+
+  mysql:
+    image: mysql:5.7.22
+    container_name: mysql
+    restart:
+      unless-stopped
+      # by default a container doesn´t restart under any circumstance
+      # this tells docker to restart container if it stopped for some reason
+    tty:
+      true
+      # enables a shell-like interface
+    volumes:
+      # only necessary if you want the data to remain
+      # whenever a container is stopped or restarted
+      - ./mysql:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      # some environment variables
+      MYSQL_DATABASE: homestead
+      MYSQL_USER: homestead
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - laravel
+
+  php:
+    # can´t be build on an image (bc nothing suitable for laravel)
+    build:
+      # lets docker know that we build our service from
+      # a Dockerfile locally instead of Docker Image from hub
+      context:
+        .
+        # directory to search for dockerfile
+      dockerfile:
+        Dockerfile
+        # name of the dockerfile
+    container_name: php
+    volumes:
+      - ./src:/var/www/html/
+    ports:
+      - "9000:9000"
+    networks:
+      - laravel
+
+  phpmyadmin:
+    depends_on:
+       - mysql
+    image: phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - '8080:80'
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: mysql
