@@ -26,9 +26,9 @@ services:
     volumes:
       # like symlinks from local machine
       # to particular place inside the docker container
-      - ./src:/var/www/html/
+      - ./o2m-api:/var/www/html/
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-        # ./src/myfile.txt => /var/www/html/myfile.txt
+        # ./o2m-api/myfile.txt => /var/www/html/myfile.txt
     ports:
       # open ports on local machine
       - "8088:80"
@@ -58,7 +58,7 @@ services:
       - "3306:3306"
     environment:
       # some environment variables
-      MYSQL_DATABASE: homestead
+      MYSQL_DATABASE: own2mesh
       MYSQL_USER: homestead
       MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: secret
@@ -80,7 +80,7 @@ services:
         # name of the dockerfile
     container_name: php
     volumes:
-      - ./src:/var/www/html/
+      - ./o2m-api:/var/www/html/
     ports:
       - "9000:9000"
     networks:
